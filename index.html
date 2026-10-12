@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Финансовая модель & Интерактивный симулятор: VPN-проект</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(24, 32, 53, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.3);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.25);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(239, 68, 68, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem 1.25rem 5rem;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    /* Header & Badges */
+    header {
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--border-glow);
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* Top Executive Summary Box */
+    .exec-summary {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exec-summary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #f43f5e, #f59e0b, #10b981);
+    }
+
+    .exec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 1rem;
+    }
+
+    .exec-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #fff;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      transition: all 0.3s ease;
+    }
+
+    .status-pill.danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+
+    .status-pill.warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--warning);
+      color: #fde68a;
+      box-shadow: 0 0 15px var(--warning-glow);
+    }
+
+    .status-pill.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--success);
+      color: #6ee7b7;
+      box-shadow: 0 0 15px var(--success-glow);
+    }
+
+    .exec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .exec-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+    }
+
+    .exec-card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .exec-card-content {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    .exec-card-content strong {
+      color: #fff;
+    }
+
+    /* Simulator Panel */
+    .simulator-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+
+    .sim-header {
+      margin-bottom: 2rem;
+    }
+
+    .sim-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .sim-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* Slider Container */
+    .slider-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      position: relative;
+    }
+
+    .slider-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .slider-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slider-val-badge {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .slider-sublabel {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: #1f2937;
+      outline: none;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #6366f1;
+      border: 3px solid #fff;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #4f46e5;
+    }
+
+    .range-markers {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      margin-top: 0.6rem;
+    }
+
+    /* Preset Buttons */
+    .presets-wrapper {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      color: var(--text-muted);
+      padding: 0.4rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      color: #fff;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .preset-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Secondary Controls (Chek & Infra Toggles) */
+    .secondary-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .control-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .control-group select {
+      background: #1e293b;
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .kpi-subtext {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.4rem;
+    }
+
+    .val-negative { color: var(--danger) !important; }
+    .val-positive { color: var(--success) !important; }
+    .val-warning  { color: var(--warning) !important; }
+
+    /* Visual Comparison Bars */
+    .chart-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .comparison-bar-container {
+      margin-bottom: 1.25rem;
+    }
+
+    .bar-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .bar-track {
+      height: 12px;
+      background: #1f2937;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s ease;
+    }
+
+    /* P&L Detailed Table */
+    .table-section {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      padding: 1rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .num-col {
+      font-family: var(--font-mono);
+      text-align: right;
+    }
+
+    .row-highlight {
+      background: rgba(99, 102, 241, 0.07);
+      font-weight: 600;
+    }
+
+    .row-total {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+      border-top: 2px solid var(--border-subtle);
+    }
+
+    /* Risk Cards Section */
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .risk-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .risk-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+    }
+
+    .risk-critical::before { background: var(--danger); }
+    .risk-high::before { background: var(--warning); }
+    .risk-moderate::before { background: var(--accent); }
+
+    .risk-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .badge-high { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+    .badge-moderate { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+
+    .risk-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      color: #fff;
+    }
+
+    .risk-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .risk-impact {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Strategic Pivot Section */
+    .pivot-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .pivot-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #6ee7b7;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pivot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .pivot-item {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      border-left: 3px solid var(--success);
+    }
+
+    .pivot-item h4 {
+      font-size: 0.95rem;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+
+    .pivot-item p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.75rem 3rem; }
+      .exec-summary, .simulator-panel { padding: 1.25rem; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-badge">Executive Financial Analysis & Interactive Simulator</div>
+      <h1>Финансовая Модель & Архитектура VPN</h1>
+      <p class="subtitle">
+        Анализ горизонта 3 месяцев разгона и 1 года эксплуатации. Оценка юнит-экономики конвейера Свята при чеке 170–200 ₽ и распределенной сети на 17 стран.
+      </p>
+    </header>
+
+    <!-- SECTION I: EXECUTIVE SUMMARY (В САМЫЙ ВЕРХ ПО ТЗ) -->
+    <section class="exec-summary">
+      <div class="exec-header">
+        <div class="exec-title">
+          <span>⚡</span>
+          <span>Главные Стратегические Выводы (Executive Summary)</span>
+        </div>
+        <div id="dynamicStatusPill" class="status-pill danger">
+          <span>●</span>
+          <span id="statusText">Медийный Капкан: Гарантированный Минус</span>
+        </div>
+      </div>
+
+      <div class="exec-grid">
+        <!-- Масштаб денег -->
+        <div class="exec-card">
+          <div class="exec-card-title">
+            <span>💰</span> Масштаб денег (Financial Tier)
+          </div>
+          <div class="exec-card-content">
+            <p><strong>Для чего эта модель НЕ подходит:</strong> Для классического малого бизнеса с наемным продакшном и зарплатами. При чеке <strong>170 ₽</strong> и оттоке <strong>40%</strong> максимальная выручка системы зажата в тиски <strong>~111 000 ₽/мес чистыми</strong>.</p>
+            <p style="margin-top: 0.5rem;"><strong>Для какого масштаба денег работает:</strong> Либо как <em>студенческий пет-проект</em> (0 ₽ на съемки, 3 локации, доход 20–40к ₽ «на карман»), либо как <em>промышленная серая сетка</em> с миллионными базами, где контент генерируется бесплатным парсингом/ботами, а чек составляет 400+ ₽.</p>
+          </div>
+        </div>
+
+        <!-- Масштаб людей -->
+        <div class="exec-card">
+          <div class="exec-card-title">
+            <span>👥</span> Масштаб людей & команды
+          </div>
+          <div class="exec-card-content">
+            <p><strong>Размер команды:</strong> На данном чеке бизнес <strong>не способен прокормить команду</strong> из актеров, оператора, монтажера, сисадмина и саппорта. Команда из 5–6 человек сжигает от 210 000 ₽ в месяц, в то время как 740 пользователей приносят лишь 111 000 ₽.</p>
+            <p style="margin-top: 0.5rem;"><strong>Кому это подходит:</strong> Одному соло-фаундеру (full-stack разработчик + он же сисадмин + он же саппорт), который использует бесплатный виральный органический контент без съемочных смен.</p>
+          </div>
+        </div>
+
+        <!-- Юридический статус -->
+        <div class="exec-card" style="border-color: rgba(239, 68, 68, 0.4);">
+          <div class="exec-card-title" style="color: #fca5a5;">
+            <span>⚖️</span> Юридический статус: Полностью Серый Бизнес
+          </div>
+          <div class="exec-card-content">
+            <p><strong>Прямые законодательные угрозы в РФ:</strong></p>
+            <p>• <strong>149-ФЗ & Приказ РКН № 168 (с 01.03.2024):</strong> Запрет популяризации и рекламы способов обхода блокировок. Съемки рилсов со Святом — прямое основание для внесудебного бана аккаунтов и бота.</p>
+            <p style="margin-top: 0.3rem;">• <strong>115-ФЗ & 171 УК РФ:</strong> Прием средств через P2P-кассы без лицензии влечет блокировку счетов и риск статьи за незаконное предпринимательство.</p>
+          </div>
+        </div>
+
+        <!-- Архитектурный вердикт -->
+        <div class="exec-card">
+          <div class="exec-card-title">
+            <span>📉</span> Суть ловушки («Медийный капкан»)
+          </div>
+          <div class="exec-card-content">
+            <p><strong>Математический парадокс:</strong> Белый дорогой медиа-продакшн (135 000 ₽/мес за 60 Reels) привлекает клиентов по <strong>CAC = 454 ₽</strong>. Но жизненный цикл клиента (LTV) при чеке 170 ₽ и оттоке 40% приносит чистыми всего <strong>374 ₽</strong>!</p>
+            <p style="margin-top: 0.5rem;">Проект <strong>теряет 80 ₽ на каждом новом клиенте</strong> еще до того, как оплатил 17 серверов и работу поддержки. Чем больше роликов снимается — тем быстрее растет кассовый разрыв.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION II: DYNAMIC INTERACTIVE SIMULATOR (С ГЛАВНЫМ ПОЛЗУНКОМ ЗАТРАТ НА РОЛИКИ) -->
+    <section class="simulator-panel">
+      <div class="sim-header">
+        <div class="sim-title">
+          <span>🎛️</span> Интерактивный Симулятор Юнит-Экономики
+        </div>
+        <p class="sim-desc">
+          Главный управляющий рычаг — <strong>затраты на создание роликов</strong>. Двигайте ползунок, чтобы увидеть, как стоимость продакшна мгновенно меняет CAC, кассовый разрыв 3 месяцев, годовой P&L и точку безубыточности.
+        </p>
+      </div>
+
+      <!-- MAIN SLIDER: Затраты на ролики -->
+      <div class="slider-box">
+        <div class="slider-meta">
+          <div>
+            <div class="slider-label">
+              <span>🎬</span> Затраты на создание роликов в месяц:
+            </div>
+            <div class="slider-sublabel" id="sliderCostPerReelText">
+              При плане 60 роликов/мес (2 Reels в день): <strong>2 250 ₽</strong> за готовый ролик
+            </div>
+          </div>
+          <div class="slider-val-badge" id="sliderValDisplay">135 000 ₽ / мес</div>
+        </div>
+
+        <input type="range" id="videoCostSlider" min="0" max="300000" step="5000" value="135000">
+
+        <div class="range-markers">
+          <span>0 ₽ (Бесплатный UGC / Мемы)</span>
+          <span>36 280 ₽ (Точка Break-even)</span>
+          <span>135 000 ₽ (Конвейер Свята)</span>
+          <span>300 000 ₽ (High-end Media)</span>
+        </div>
+
+        <!-- Быстрые пресеты -->
+        <div class="presets-wrapper">
+          <button class="preset-btn active" onclick="setPreset(135000, this)">План Свята (135 000 ₽)</button>
+          <button class="preset-btn" onclick="setPreset(60000, this)">Эконом-съемка (60 000 ₽)</button>
+          <button class="preset-btn" onclick="setPreset(36280, this)">Точка безубыточности (36 280 ₽)</button>
+          <button class="preset-btn" onclick="setPreset(0, this)">Бесплатный виральный UGC (0 ₽)</button>
+        </div>
+      </div>
+
+      <!-- Вспомогательные настройки параметров -->
+      <div class="secondary-controls">
+        <div class="control-group">
+          <label>Тариф подписки (Чек / мес):</label>
+          <select id="priceSelect" onchange="recalculate()">
+            <option value="170" selected>170 ₽/мес (Базовый по ТЗ)</option>
+            <option value="220">220 ₽/мес (Компенсация комиссий)</option>
+            <option value="350">350 ₽/мес (Рыночный средний)</option>
+            <option value="490">490 ₽/мес (Премиум мульти-устройства)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Архитектура серверов:</label>
+          <select id="infraSelect" onchange="recalculate()">
+            <option value="17" selected>17 локаций (44 800 ₽/мес + сисадмин)</option>
+            <option value="5">5 ключевых локаций (14 500 ₽/мес + авто-скрипты)</option>
+            <option value="2">2 ноды (Hobby-setup: 4 000 ₽/мес)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Ежемесячный отток (Churn Rate):</label>
+          <select id="churnSelect" onchange="recalculate()">
+            <option value="0.40" selected>40% (Норма для соцсетей, LTV 2.5 мес)</option>
+            <option value="0.25">25% (Качественный сервис, LTV 4.0 мес)</option>
+            <option value="0.15">15% (Лояльная база, LTV 6.7 мес)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KPI Метрики реального времени -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>Стоимость клиента (CAC)</span>
+            <span>🎯</span>
+          </div>
+          <div class="kpi-value" id="kpiCac">455 ₽</div>
+          <div class="kpi-subtext" id="kpiCacSub">При 297 платящих / мес</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>Чистый LTV клиента</span>
+            <span>💎</span>
+          </div>
+          <div class="kpi-value" id="kpiLtv">374 ₽</div>
+          <div class="kpi-subtext" id="kpiLtvSub">С учетом 12% шлюза</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>LTV / CAC Соотношение</span>
+            <span>⚖️</span>
+          </div>
+          <div class="kpi-value val-negative" id="kpiLtvCac">0.82x</div>
+          <div class="kpi-subtext" id="kpiLtvCacSub">Норма для бизнеса > 3.0x</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>Потолок базы (Cap)</span>
+            <span>👥</span>
+          </div>
+          <div class="kpi-value" id="kpiBaseCap">742 чел</div>
+          <div class="kpi-subtext">Стационарный предел</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>Касса за 3 мес (Разгон)</span>
+            <span>⏳</span>
+          </div>
+          <div class="kpi-value val-negative" id="kpiCash3m">-491 850 ₽</div>
+          <div class="kpi-subtext">С учетом CAPEX 65 000 ₽</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">
+            <span>Годовой P&L (12 мес)</span>
+            <span>📈</span>
+          </div>
+          <div class="kpi-value val-negative" id="kpiNet1y">-1 341 100 ₽</div>
+          <div class="kpi-subtext" id="kpiNet1ySub">Чистый итог года</div>
+        </div>
+      </div>
+
+      <!-- Сравнительные индикаторы баланса -->
+      <div class="chart-box">
+        <div class="chart-title">
+          <span>Сравнение: Чистая выручка vs Расходы в стационарном состоянии (в месяц)</span>
+          <span style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent);" id="monthlyBalanceText">Расход: 209 800 ₽ | Доход: 111 078 ₽</span>
+        </div>
+
+        <div class="comparison-bar-container">
+          <div class="bar-row">
+            <span style="color: var(--danger);">Все расходы проекта (Серверы + Саппорт + Маркетинг):</span>
+            <span id="barCostVal" style="font-family: var(--font-mono); font-weight: 700;">209 800 ₽</span>
+          </div>
+          <div class="bar-track">
+            <div id="barCostFill" class="bar-fill" style="width: 100%; background: linear-gradient(90deg, #f43f5e, #ef4444);"></div>
+          </div>
+        </div>
+
+        <div class="comparison-bar-container">
+          <div class="bar-row">
+            <span style="color: var(--success);">Чистая выручка от потолка базы (за вычетом 12% эквайринга):</span>
+            <span id="barRevVal" style="font-family: var(--font-mono); font-weight: 700;">111 078 ₽</span>
+          </div>
+          <div class="bar-track">
+            <div id="barRevFill" class="bar-fill" style="width: 53%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+          </div>
+        </div>
+
+        <p style="font-size: 0.82rem; color: var(--text-dim); margin-top: 0.75rem;">
+          💡 <strong>Математический порог безубыточности:</strong> Проект выходит в плюс только в том случае, если на создание 60 роликов тратится меньше <strong id="beMonthlyText" style="color: #fff;">36 280 ₽ в месяц</strong> (не более <strong id="beReelText" style="color: #fff;">605 ₽</strong> за ролик). При любой большей сумме сервис генерирует непрерывный убыток.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- SECTION III: СВОДНЫЙ P&L И СТРУКТУРА ЗАТРАТ -->
+    <section class="table-section">
+      <div class="section-title">
+        <span>📊</span> Финансовый P&L: 3 Месяца Разгона vs 1 Год Эксплуатации
+      </div>
+      <p class="section-desc">
+        Подетальная роспись структуры доходов, операционных затрат (OPEX), капитальных вложений (CAPEX) и скрытых комиссий платежной инфраструктуры.
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Статья финансовых потоков</th>
+              <th>Формула / База расчета</th>
+              <th class="num-col">В месяц (Старт)</th>
+              <th class="num-col">3 Месяца (Разгон)</th>
+              <th class="num-col">1 Год (12 Месяцев)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Доходы -->
+            <tr class="row-highlight">
+              <td colspan="5" style="color: var(--accent); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">
+                1. Доходная часть (Revenue)
+              </td>
+            </tr>
+            <tr>
+              <td>Грязная выручка от подписок</td>
+              <td id="tableGrossDesc">База платящих подписчиков × 170 ₽</td>
+              <td class="num-col" id="tGrossM1">50 490 ₽</td>
+              <td class="num-col" id="tGross3m">230 230 ₽</td>
+              <td class="num-col" id="tGross1y">1 410 830 ₽</td>
+            </tr>
+            <tr>
+              <td>Комиссия эквайринга (P2P High-Risk)</td>
+              <td>-12% (8–10% прием + 2–4% вывод в USDT)</td>
+              <td class="num-col val-negative" id="tFeeM1">-6 059 ₽</td>
+              <td class="num-col val-negative" id="tFee3m">-27 628 ₽</td>
+              <td class="num-col val-negative" id="tFee1y">-169 300 ₽</td>
+            </tr>
+            <tr style="font-weight: 600;">
+              <td>Чистая поступившая выручка (Net Revenue)</td>
+              <td>Фактические деньги на счете (149.6 ₽ с подписки)</td>
+              <td class="num-col val-positive" id="tNetM1">44 431 ₽</td>
+              <td class="num-col val-positive" id="tNet3m">202 602 ₽</td>
+              <td class="num-col val-positive" id="tNet1y">1 241 530 ₽</td>
+            </tr>
+
+            <!-- Капитальные затраты -->
+            <tr class="row-highlight">
+              <td colspan="5" style="color: var(--accent); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">
+                2. Капитальные затраты на старт (CAPEX — разово)
+              </td>
+            </tr>
+            <tr>
+              <td>Разработка бота + Marzban + WebApp</td>
+              <td>Скрипты синхронизации, каталог ключей, рефералка</td>
+              <td class="num-col val-negative">-45 000 ₽</td>
+              <td class="num-col val-negative">-45 000 ₽</td>
+              <td class="num-col val-negative">-45 000 ₽</td>
+            </tr>
+            <tr>
+              <td>SNI-домены, SSL-спуфинг, подключение шлюза</td>
+              <td>4 маскировочных домена + депозит P2P-кассы</td>
+              <td class="num-col val-negative">-20 000 ₽</td>
+              <td class="num-col val-negative">-20 000 ₽</td>
+              <td class="num-col val-negative">-20 000 ₽</td>
+            </tr>
+            <tr style="font-weight: 600;">
+              <td>ИТОГО CAPEX (Инвестиции в запуск)</td>
+              <td>Разовый невозвратный входной билет</td>
+              <td class="num-col val-negative">-65 000 ₽</td>
+              <td class="num-col val-negative">-65 000 ₽</td>
+              <td class="num-col val-negative">-65 000 ₽</td>
+            </tr>
+
+            <!-- Регулярные расходы -->
+            <tr class="row-highlight">
+              <td colspan="5" style="color: var(--accent); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">
+                3. Регулярные операционные расходы (OPEX)
+              </td>
+            </tr>
+            <tr>
+              <td>Инфраструктура нод (17 локаций)</td>
+              <td id="tInfraDesc">Мастер-нода + 5 EU + 12 экзотика + 2 Relay + IP</td>
+              <td class="num-col val-negative" id="tInfraM">-44 800 ₽</td>
+              <td class="num-col val-negative" id="tInfra3m">-134 400 ₽</td>
+              <td class="num-col val-negative" id="tInfra1y">-537 600 ₽</td>
+            </tr>
+            <tr>
+              <td>L1 Служба поддержки пользователей</td>
+              <td>1 оператор тикетов (разбор сбоев у абонентов МТС/Билайн)</td>
+              <td class="num-col val-negative">-30 000 ₽</td>
+              <td class="num-col val-negative">-90 000 ₽</td>
+              <td class="num-col val-negative">-360 000 ₽</td>
+            </tr>
+            <tr style="background: rgba(99, 102, 241, 0.1);">
+              <td>Маркетинг & Продакшн роликов (Слайдер)</td>
+              <td id="tMktDesc">Конвейер Свята: 60 Reels/мес</td>
+              <td class="num-col val-negative" id="tMktM">-135 000 ₽</td>
+              <td class="num-col val-negative" id="tMkt3m">-405 000 ₽</td>
+              <td class="num-col val-negative" id="tMkt1y">-1 620 000 ₽</td>
+            </tr>
+            <tr style="font-weight: 600;">
+              <td>ИТОГО OPEX (Операционные расходы)</td>
+              <td>Инфраструктура + Саппорт + Конвейер роликов</td>
+              <td class="num-col val-negative" id="tOpexM">-209 800 ₽</td>
+              <td class="num-col val-negative" id="tOpex3m">-629 400 ₽</td>
+              <td class="num-col val-negative" id="tOpex1y">-2 517 600 ₽</td>
+            </tr>
+
+            <!-- Итоговый баланс -->
+            <tr class="row-total">
+              <td>ИТОГОВЫЙ ЧИСТЫЙ ФИНАНСОВЫЙ РЕЗУЛЬТАТ (P&L)</td>
+              <td>Чистая выручка − CAPEX − OPEX</td>
+              <td class="num-col val-negative" id="tTotalM1" style="font-size: 1.05rem;">-230 369 ₽</td>
+              <td class="num-col val-negative" id="tTotal3m" style="font-size: 1.05rem;">-491 798 ₽</td>
+              <td class="num-col val-negative" id="tTotal1y" style="font-size: 1.05rem;">-1 341 070 ₽</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION IV: АНАЛИЗ КРИТИЧЕСКИХ РИСКОВ ("ЧТО ТАК, ЧТО НЕ ТАК") -->
+    <section>
+      <div class="section-title">
+        <span>⚠️</span> Анализ Критических Рисков: «Что Так и Что Не Так»
+      </div>
+      <p class="section-desc">
+        Декомпозиция скрытых факторов серого рынка, которые ломают теоретические финансовые расчеты в реальной эксплуатации.
+      </p>
+
+      <div class="risk-grid">
+        <!-- Риск 0: Юридическая ответственность и серый статус -->
+        <div class="risk-card risk-critical">
+          <span class="risk-badge badge-critical">Юридический риск / Серый бизнес</span>
+          <h3>0. Законодательные барьеры & Уголовно-правовые риски (РФ)</h3>
+          <p>
+            Проект работает в серой зоне с прямыми юридическими составами правонарушений:
+          </p>
+          <ul style="font-size: 0.84rem; color: #cbd5e1; margin: 0.5rem 0 0.5rem 1.2rem; line-height: 1.5;">
+            <li><strong>149-ФЗ (ст. 15.8):</strong> Запрет предоставления доступа к заблокированным ресурсам. Сервисы обязаны подключаться к ФГИС и блокировать запрещенные сайты. Неисполнение ведет к внесению доменов и IP в реестр блокировок.</li>
+            <li><strong>Запрет рекламы и популяризации VPN (с 1 марта 2024 г., Приказ РКН № 168):</strong> Любой контент Reels, демонстрирующий «как обойти блокировку Instagram/YouTube», прямо подпадает под досудебную блокировку аккаунтов, каналов и ресурсов по ст. 15.1 149-ФЗ. Съемки актеров с упоминанием обхода блокировок — прямая наводка для РКН.</li>
+            <li><strong>171 УК РФ (Незаконное предпринимательство) & 115-ФЗ (Финмониторинг):</strong> Прием платежей через серые P2P-карты («дропы») или нелицензированные крипто-шлюзы без юрлица влечет блокировку личных счетов по 115-ФЗ и риск уголовной ответственности при обороте от 2.25 млн ₽.</li>
+            <li><strong>Ст. 272–273 УК РФ:</strong> При определенных формулировках экспертизы средства обхода средств защиты информации могут трактоваться как вредоносные или неправомерные инструменты.</li>
+          </ul>
+          <div class="risk-impact">
+            <span>⚖️</span>
+            <span><strong>Импакт:</strong> Блокировка Telegram-бота и Instagram-аккаунтов Свята без суда, заморозка дроп-карт с деньгами, уголовные риски для организаторов.</span>
+          </div>
+        </div>
+
+        <!-- Риск 1: РКН -->
+        <div class="risk-card risk-critical">
+          <span class="risk-badge badge-critical">Критический риск</span>
+          <h3>1. «Смерть за одну ночь» от ТСПУ РКН</h3>
+          <p>
+            В отличие от обычного SaaS, VPN в РФ находится под ежедневным прицелом технических средств противодействия угрозам (ТСПУ). Блокировка происходит не по IP, а по сигнатурам протокола (как произошло с WG, OpenVPN, и фрагментарно происходит с Reality).
+          </p>
+          <div class="risk-impact">
+            <span>💥</span>
+            <span><strong>Импакт:</strong> 1 сутки сбоя сжигают 50% базы навсегда + 1 000 гневных тикетов в саппорт.</span>
+          </div>
+        </div>
+
+        <!-- Риск 2: Асимметрия обязательств -->
+        <div class="risk-card risk-critical">
+          <span class="risk-badge badge-critical">Финансовая ловушка</span>
+          <h3>2. Асимметрия долгосрочных подписок</h3>
+          <p>
+            Чтобы заткнуть стартовую дыру в кэшфлоу, возникает соблазн продавать подписки на 6–12 месяцев со скидкой. Но это юридический и финансовый долг: получив 1 500 ₽ сегодня, вы обязуетесь оплачивать 17 серверов весь следующий год.
+          </p>
+          <div class="risk-impact">
+            <span>📉</span>
+            <span><strong>Импакт:</strong> Если Свят выгорит через 2 месяца, оплачивать 45 000 ₽/мес за серверы придется из своего кармана.</span>
+          </div>
+        </div>
+
+        <!-- Риск 3: Усталость креативов -->
+        <div class="risk-card risk-high">
+          <span class="risk-badge badge-high">Маркетинговый риск</span>
+          <h3>3. Выгорание алгоритмов и рост CAC</h3>
+          <p>
+            Конвейер в 2 ролика в день сталкивается с «баннерной слепотой» алгоритмов Instagram. Первые 20–30 роликов собирают дешевые просмотры, но к 60-му ролику охват падает втрое, а CAC подскакивает с 454 ₽ до 900–1 200 ₽ при тех же расходах на съемки.
+          </p>
+          <div class="risk-impact">
+            <span>📈</span>
+            <span><strong>Импакт:</strong> Удвоение затрат на привлечение при неизменной выручке.</span>
+          </div>
+        </div>
+
+        <!-- Риск 4: Rolling Reserve -->
+        <div class="risk-card risk-high">
+          <span class="risk-badge badge-high">Кассовый разрыв</span>
+          <h3>4. Заморозка денег в Rolling Reserve (10%)</h3>
+          <p>
+            Серые P2P-эквайринги замораживают 10% от входящего оборота на 90–180 дней «на случай споров и чарджбеков». При выручке 200 000 ₽ на счете эквайринга мертво висит 20 000 ₽, которые нельзя пустить на оплату серверов или актеров.
+          </p>
+          <div class="risk-impact">
+            <span>🔒</span>
+            <span><strong>Импакт:</strong> Прямой кассовый разрыв в первые 3–4 месяца разгона.</span>
+          </div>
+        </div>
+
+        <!-- Риск 5: Саппорт-коллапс -->
+        <div class="risk-card risk-moderate">
+          <span class="risk-badge badge-moderate">Операционный риск</span>
+          <h3>5. Коллапс L1-поддержки из-за мобильных сетей</h3>
+          <p>
+            Массовая аудитория из Reels — это не гики, а домохозяйки и школьники. Любое обновление iOS или ограничение на мобильном операторе (Tele2/Билайн) вызывает шквал: «У меня не грузит сторис!». Один саппорт за 30 000 ₽ захлебывается при базе свыше 500 человек.
+          </p>
+          <div class="risk-impact">
+            <span>⏳</span>
+            <span><strong>Импакт:</strong> Рост оттока (Churn) с 40% до 60% из-за долгого ответа саппорта.</span>
+          </div>
+        </div>
+
+        <!-- Риск 6: Инфраструктурный оверхед -->
+        <div class="risk-card risk-moderate">
+          <span class="risk-badge badge-moderate">Архитектурный перекос</span>
+          <h3>6. Оверинжиниринг: 17 локаций для старта</h3>
+          <p>
+            Копирование 4T0 VPN с 17 странами на старте — фатальная ошибка аллокации ресурсов. 92% пользователей включают VPN только ради Instagram и YouTube, для чего достаточно 2–3 стран (NL, DE, FI). 12 экзотических локаций генерируют 70% серверного коста при 3% реального трафика.
+          </p>
+          <div class="risk-impact">
+            <span>💸</span>
+            <span><strong>Импакт:</strong> 30 000 ₽ в месяц сжигаются на «пустые» серверы в Бразилии и Японии.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION V: СТРАТЕГИЯ PIVOT (КАК СДЕЛАТЬ ПРОЕКТ ПРИБЫЛЬНЫМ) -->
+    <section class="pivot-box">
+      <div class="pivot-title">
+        <span>🚀</span> Как Сделать Этот Проект Прибыльным: Стратегия Антикризисного Пересчета
+      </div>
+      <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 1.25rem;">
+        Если фаундеры хотят запустить этот бизнес и зарабатывать <strong>+100 000 – 150 000 ₽ чистой прибыли в месяц</strong>, модель требует радикальной архитектурной пересборки:
+      </p>
+
+      <div class="pivot-grid">
+        <div class="pivot-item">
+          <h4>1. Срезать инфраструктуру до 3 стран</h4>
+          <p>Оставить Нидерланды, Германию и Финляндию на надежных аплинках 10G. Серверный кост падает с <strong>44 800 ₽</strong> до <strong>9 000 ₽/мес</strong>.</p>
+        </div>
+
+        <div class="pivot-item">
+          <h4>2. Поднять чек до 350–390 ₽/мес</h4>
+          <p>Позиционироваться не как «дешевый VPN за 170 ₽», а как «ультра-стабильный персональный туннель без замедлений». Выручка с базы удваивается при том же объеме пользователей.</p>
+        </div>
+
+        <div class="pivot-item">
+          <h4>3. Заменить актеров на виральный UGC / AI</h4>
+          <p>Отказаться от съемочных смен Свята (экономия 135 000 ₽/мес!). Использовать нарезки мемов, записи экрана с ускорением YouTube и AI-аватары. Бюджет контента: <strong>10 000 – 15 000 ₽/мес</strong>.</p>
+        </div>
+
+        <div class="pivot-item">
+          <h4>4. Внедрить B2B / Family тарифы</h4>
+          <p>Пакеты «Семья (5 устройств) за 790 ₽» и «Для малого бизнеса за 2 500 ₽». B2B-клиенты имеют Churn менее 5% и платят сразу на год вперед без кассовых разрывов.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      Разработано в рамках системного регламента Top-Down Systems Architecture (MIT Standard & Школа 21). Все права на формулы и симулятор сохранены.
+    </footer>
+
+  </div>
+
+  <!-- Interactive Logic -->
+  <script>
+    // State
+    const state = {
+      reach: 750000,
+      cr1: 0.01,       // 1.0% -> 7500
+      cr2: 0.18,       // 18% -> 1350
+      cr3: 0.22,       // 22% -> 297 new users
+      videoCost: 135000,
+      price: 170,
+      churn: 0.40,
+      infraType: '17', // 17, 5, 2
+      supportCost: 30000,
+      gatewayFeePct: 0.12,
+      capex: 65000
+    };
+
+    const slider = document.getElementById('videoCostSlider');
+    const sliderValDisplay = document.getElementById('sliderValDisplay');
+    const sliderCostPerReelText = document.getElementById('sliderCostPerReelText');
+    const priceSelect = document.getElementById('priceSelect');
+    const infraSelect = document.getElementById('infraSelect');
+    const churnSelect = document.getElementById('churnSelect');
+
+    slider.addEventListener('input', (e) => {
+      state.videoCost = parseFloat(e.target.value);
+      updateSliderUI();
+      recalculate();
+      updatePresetHighlight();
+    });
+
+    function setPreset(val, btn) {
+      slider.value = val;
+      state.videoCost = val;
+      updateSliderUI();
+      recalculate();
+
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    function updatePresetHighlight() {
+      const current = state.videoCost;
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const text = btn.innerText;
+        if (current === 135000 && text.includes('135 000')) btn.classList.add('active');
+        else if (current === 60000 && text.includes('60 000')) btn.classList.add('active');
+        else if (Math.abs(current - 36280) < 3000 && text.includes('безубыточности')) btn.classList.add('active');
+        else if (current === 0 && text.includes('0 ₽')) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+
+    function updateSliderUI() {
+      sliderValDisplay.innerText = formatMoney(state.videoCost) + ' / мес';
+      const costPerReel = Math.round(state.videoCost / 60);
+      sliderCostPerReelText.innerHTML = `При плане 60 роликов/мес (2 Reels в день): <strong>${formatMoney(costPerReel)}</strong> за готовый ролик`;
+    }
+
+    function formatMoney(num) {
+      return Math.round(num).toLocaleString('ru-RU') + ' ₽';
+    }
+
+    function getInfraCost(type) {
+      if (type === '17') return 44800;
+      if (type === '5') return 14500;
+      return 4000;
+    }
+
+    function recalculate() {
+      state.price = parseFloat(priceSelect.value);
+      state.churn = parseFloat(churnSelect.value);
+      state.infraType = infraSelect.value;
+
+      const newUsersMonthly = Math.round(state.reach * state.cr1 * state.cr2 * state.cr3); // 297
+      const cac = state.videoCost > 0 ? (state.videoCost / newUsersMonthly) : 0;
+      const netPrice = state.price * (1 - state.gatewayFeePct);
+      const lifetimeMonths = 1 / state.churn;
+      const ltvNet = lifetimeMonths * netPrice;
+      const ltvCacRatio = cac > 0 ? (ltvNet / cac) : 99.9;
+
+      const maxBase = Math.round(newUsersMonthly / state.churn); // ~742
+      const maxMonthlyGrossRev = maxBase * state.price;
+      const maxMonthlyNetRev = maxBase * netPrice;
+
+      const infraMonthly = getInfraCost(state.infraType);
+      const totalOpexMonthly = infraMonthly + state.supportCost + state.videoCost;
+      const steadyMonthlyProfit = maxMonthlyNetRev - (infraMonthly + state.supportCost + state.videoCost);
+
+      // Break-even video cost
+      const breakEvenVideoCost = Math.max(0, maxMonthlyNetRev - (infraMonthly + state.supportCost));
+      const breakEvenPerReel = Math.round(breakEvenVideoCost / 60);
+
+      // Trajectory 3 months
+      // Base at end of each month
+      let u1 = newUsersMonthly;
+      let u2 = Math.round(u1 * (1 - state.churn) + newUsersMonthly);
+      let u3 = Math.round(u2 * (1 - state.churn) + newUsersMonthly);
+
+      let revNetM1 = u1 * netPrice;
+      let revNetM2 = u2 * netPrice;
+      let revNetM3 = u3 * netPrice;
+      let revNet3m = revNetM1 + revNetM2 + revNetM3;
+
+      let revGrossM1 = u1 * state.price;
+      let revGross3m = (u1 + u2 + u3) * state.price;
+
+      let costs3m = state.capex + (totalOpexMonthly * 3);
+      let netResult3m = revNet3m - costs3m;
+
+      // Trajectory 1 year (12 months)
+      let currentUsers = 0;
+      let totalUserMonths = 0;
+      for (let m = 1; m <= 12; m++) {
+        currentUsers = Math.round(currentUsers * (1 - state.churn) + newUsersMonthly);
+        totalUserMonths += currentUsers;
+      }
+      let revGross1y = totalUserMonths * state.price;
+      let revNet1y = totalUserMonths * netPrice;
+      let costs1y = state.capex + (totalOpexMonthly * 12);
+      let netResult1y = revNet1y - costs1y;
+
+      // Update KPI Cards
+      const kpiCac = document.getElementById('kpiCac');
+      kpiCac.innerText = formatMoney(cac);
+      kpiCac.className = 'kpi-value ' + (cac > ltvNet ? 'val-negative' : 'val-positive');
+
+      const kpiLtv = document.getElementById('kpiLtv');
+      kpiLtv.innerText = formatMoney(ltvNet);
+
+      const kpiLtvCac = document.getElementById('kpiLtvCac');
+      kpiLtvCac.innerText = ltvCacRatio.toFixed(2) + 'x';
+      if (ltvCacRatio < 1.0) kpiLtvCac.className = 'kpi-value val-negative';
+      else if (ltvCacRatio < 2.5) kpiLtvCac.className = 'kpi-value val-warning';
+      else kpiLtvCac.className = 'kpi-value val-positive';
+
+      document.getElementById('kpiBaseCap').innerText = maxBase + ' чел';
+
+      const kpiCash3m = document.getElementById('kpiCash3m');
+      kpiCash3m.innerText = formatMoney(netResult3m);
+      kpiCash3m.className = 'kpi-value ' + (netResult3m < 0 ? 'val-negative' : 'val-positive');
+
+      const kpiNet1y = document.getElementById('kpiNet1y');
+      kpiNet1y.innerText = formatMoney(netResult1y);
+      kpiNet1y.className = 'kpi-value ' + (netResult1y < 0 ? 'val-negative' : 'val-positive');
+
+      // Update Top Status Pill
+      const statusPill = document.getElementById('dynamicStatusPill');
+      const statusText = document.getElementById('statusText');
+      if (steadyMonthlyProfit < -40000 || netResult3m < -300000) {
+        statusPill.className = 'status-pill danger';
+        statusText.innerText = 'Катастрофический убыток (Капкан)';
+      } else if (steadyMonthlyProfit < 0) {
+        statusPill.className = 'status-pill warning';
+        statusText.innerText = 'Кассовый разрыв (Минус на дистанции)';
+      } else if (steadyMonthlyProfit < 30000) {
+        statusPill.className = 'status-pill warning';
+        statusText.innerText = 'Около нуля (Самоокупаемость без прибыли)';
+      } else {
+        statusPill.className = 'status-pill success';
+        statusText.innerText = 'Устойчивая прибыль (' + formatMoney(steadyMonthlyProfit) + '/мес)';
+      }
+
+      // Update Comparison Bars
+      document.getElementById('monthlyBalanceText').innerText = 
+        `Расход: ${formatMoney(totalOpexMonthly)} | Выручка: ${formatMoney(maxMonthlyNetRev)}`;
+
+      document.getElementById('barCostVal').innerText = formatMoney(totalOpexMonthly);
+      document.getElementById('barRevVal').innerText = formatMoney(maxMonthlyNetRev);
+
+      const maxScale = Math.max(totalOpexMonthly, maxMonthlyNetRev, 1);
+      const costPct = Math.min(100, Math.round((totalOpexMonthly / maxScale) * 100));
+      const revPct = Math.min(100, Math.round((maxMonthlyNetRev / maxScale) * 100));
+
+      document.getElementById('barCostFill').style.width = costPct + '%';
+      document.getElementById('barRevFill').style.width = revPct + '%';
+
+      document.getElementById('beMonthlyText').innerText = formatMoney(breakEvenVideoCost) + ' в месяц';
+      document.getElementById('beReelText').innerText = formatMoney(breakEvenPerReel) + ' за ролик';
+
+      // Update Detailed Table
+      document.getElementById('tableGrossDesc').innerText = `База подписчиков × ${state.price} ₽`;
+      document.getElementById('tGrossM1').innerText = formatMoney(revGrossM1);
+      document.getElementById('tGross3m').innerText = formatMoney(revGross3m);
+      document.getElementById('tGross1y').innerText = formatMoney(revGross1y);
+
+      const feeM1 = revGrossM1 * state.gatewayFeePct;
+      const fee3m = revGross3m * state.gatewayFeePct;
+      const fee1y = revGross1y * state.gatewayFeePct;
+      document.getElementById('tFeeM1').innerText = '-' + formatMoney(feeM1);
+      document.getElementById('tFee3m').innerText = '-' + formatMoney(fee3m);
+      document.getElementById('tFee1y').innerText = '-' + formatMoney(fee1y);
+
+      document.getElementById('tNetM1').innerText = formatMoney(revNetM1);
+      document.getElementById('tNet3m').innerText = formatMoney(revNet3m);
+      document.getElementById('tNet1y').innerText = formatMoney(revNet1y);
+
+      document.getElementById('tInfraDesc').innerText = 
+        state.infraType === '17' ? 'Мастер + 5 EU + 12 экзотика + 2 Relay + IP' :
+        state.infraType === '5' ? '5 ключевых нод (NL, DE, FI, US, SG)' : '2 ноды (NL, DE)';
+      document.getElementById('tInfraM').innerText = '-' + formatMoney(infraMonthly);
+      document.getElementById('tInfra3m').innerText = '-' + formatMoney(infraMonthly * 3);
+      document.getElementById('tInfra1y').innerText = '-' + formatMoney(infraMonthly * 12);
+
+      document.getElementById('tMktDesc').innerText = `Конвейер Свята: 60 Reels/мес (${formatMoney(state.videoCost / 60)}/ролик)`;
+      document.getElementById('tMktM').innerText = '-' + formatMoney(state.videoCost);
+      document.getElementById('tMkt3m').innerText = '-' + formatMoney(state.videoCost * 3);
+      document.getElementById('tMkt1y').innerText = '-' + formatMoney(state.videoCost * 12);
+
+      document.getElementById('tOpexM').innerText = '-' + formatMoney(totalOpexMonthly);
+      document.getElementById('tOpex3m').innerText = '-' + formatMoney(totalOpexMonthly * 3);
+      document.getElementById('tOpex1y').innerText = '-' + formatMoney(totalOpexMonthly * 12);
+
+      const totalResultM1 = revNetM1 - state.capex - totalOpexMonthly;
+      document.getElementById('tTotalM1').innerText = formatMoney(totalResultM1);
+      document.getElementById('tTotalM1').className = 'num-col ' + (totalResultM1 < 0 ? 'val-negative' : 'val-positive');
+
+      document.getElementById('tTotal3m').innerText = formatMoney(netResult3m);
+      document.getElementById('tTotal3m').className = 'num-col ' + (netResult3m < 0 ? 'val-negative' : 'val-positive');
+
+      document.getElementById('tTotal1y').innerText = formatMoney(netResult1y);
+      document.getElementById('tTotal1y').className = 'num-col ' + (netResult1y < 0 ? 'val-negative' : 'val-positive');
+    }
+
+    // Initial calculation on load
+    updateSliderUI();
+    recalculate();
+  </script>
+</body>
+</html>
